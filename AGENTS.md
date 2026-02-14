@@ -1,10 +1,10 @@
-# hackctl
+# workspacectl
 
 A CLI tool for managing developer workspaces. Automates git worktrees, tmux sessions, and Claude Code environments so you can go from "I want to work on X" to a fully bootstrapped workspace in one command.
 
 ## How It Works
 
-A **workspace** is a directory on disk under `~/.hackctl/`. The filesystem is the sole source of truth — if the directory exists, the workspace exists. There is no database.
+A **workspace** is a directory on disk under `~/.workspacectl/`. The filesystem is the sole source of truth — if the directory exists, the workspace exists. There is no database.
 
 There are two types:
 
@@ -16,7 +16,7 @@ A **tmux session** is derived from a workspace on demand — it is a view, not p
 ## Disk Layout
 
 ```
-~/.hackctl/
+~/.workspacectl/
 ├── config.yaml
 ├── repositories/
 │   └── <org>/
@@ -26,11 +26,11 @@ A **tmux session** is derived from a workspace on demand — it is a view, not p
     └── <name>/                  # temporary workspace
 ```
 
-`~/.hackctl/` and `config.yaml` are created implicitly on first use. No `init` command.
+`~/.workspacectl/` and `config.yaml` are created implicitly on first use. No `init` command.
 
 ## Workspace Naming
 
-Every workspace has a globally unique name, derived from its filesystem path. The name is never parsed back into components — hackctl discovers workspaces by walking the filesystem and computing names from the directory structure.
+Every workspace has a globally unique name, derived from its filesystem path. The name is never parsed back into components — workspacectl discovers workspaces by walking the filesystem and computing names from the directory structure.
 
 | Type | Path | Name |
 |---|---|---|
@@ -41,19 +41,19 @@ When no branch or name is provided at creation time, one is auto-generated using
 
 The workspace name is used:
 - As the CLI argument to identify a workspace
-- To derive the tmux session name: `hackctl-<name>` (non-alphanumeric characters replaced with hyphens)
+- To derive the tmux session name: `workspace-<name>` (non-alphanumeric characters replaced with hyphens)
 - In `list` output (fzf-friendly, one workspace per line)
 
 ## CLI Design
 
-Verb-noun pattern using cobra (e.g., `create workspace`, `list workspaces`, `open workspace`). A `--type` flag distinguishes workspace types at creation time. The code is the reference for exact command syntax.
+Since the noun is in the tool name, commands are just verbs: `workspacectl create`, `workspacectl list`, `workspacectl attach`. A `--type` flag distinguishes workspace types at creation time. The code is the reference for exact command syntax.
 
 ### Behaviours
 
 - **Creating (worktree)**: Bare-clone the repo if needed. Create the branch from the default branch if it doesn't exist on the remote. Create the worktree.
 - **Creating (temporary)**: Create the directory.
 - **Listing**: Discover all workspaces from the filesystem. Show inline status: merge status, tmux session state, and potentially CI status or whether Claude needs input.
-- **Opening**: Idempotent. Attach to existing tmux session, or create one from the layout config and attach.
+- **Attaching**: Idempotent. Attach to existing tmux session, or create one from the layout config and attach.
 - **Deleting**: Warn and require confirmation if there are uncommitted changes or unpushed commits (or accept a force flag). Clean up worktree, tmux session, and directory. If this was the last worktree in a bare clone, delete the bare clone too (after verifying no other branches have unpushed work).
 - **Renaming**: Rename on disk (and the git branch, if applicable). The workspace name updates automatically since it's derived from the filesystem.
 
@@ -81,11 +81,11 @@ layouts:
 
 ### Quick switcher
 
-hackctl integrates with tmux popup and fzf — it does not ship its own TUI. A tmux keybinding invokes a popup that lists workspaces via fzf, then opens the selection. The popup should also support creating new workspaces.
+workspacectl integrates with tmux popup and fzf — it does not ship its own TUI. A tmux keybinding invokes a popup that lists workspaces via fzf, then attaches to the selection. The popup should also support creating new workspaces.
 
 ### Cleanup
 
-Orphaned tmux sessions (no corresponding workspace on disk) are cleaned up automatically on every hackctl invocation.
+Orphaned tmux sessions (no corresponding workspace on disk) are cleaned up automatically on every workspacectl invocation.
 
 ## Architecture
 
