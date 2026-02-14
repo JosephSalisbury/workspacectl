@@ -9,7 +9,7 @@ A **workspace** is a directory on disk under `~/.hackctl/`. The filesystem is th
 There are two types:
 
 - **Worktree**: A git worktree inside a bare clone. For writing code.
-- **Temporary**: A plain directory. For non-code work like Claude discussions or MCP sessions. Auto-cleaned after 2 weeks of inactivity.
+- **Temporary**: A plain directory. For non-code work like Claude discussions or MCP sessions. Auto-cleaned after a configurable inactivity period (default: 2 weeks).
 
 A **tmux session** is derived from a workspace on demand — it is a view, not part of the workspace's identity. Opening a workspace creates or attaches to its tmux session transparently.
 
