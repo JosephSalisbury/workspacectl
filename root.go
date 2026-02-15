@@ -7,7 +7,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var baseDir string
+var (
+	baseDir string
+	verbose bool
+)
 
 var rootCmd = &cobra.Command{
 	Use:           "workspacectl",
@@ -24,4 +27,5 @@ func init() {
 	}
 	defaultBaseDir := filepath.Join(home, ".workspacectl")
 	rootCmd.PersistentFlags().StringVar(&baseDir, "base-dir", defaultBaseDir, "base directory for workspaces")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 }

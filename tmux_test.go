@@ -62,40 +62,49 @@ func TestCreateSession(t *testing.T) {
 	}
 }
 
-func TestAttachSession(t *testing.T) {
+func TestAttachSessionOutsideTmux(t *testing.T) {
+	t.Setenv("TMUX", "")
 	fake := newFakeExecutor()
 	err := attachSession(context.Background(), fake, "test-session")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	// Should try switch-client first.
+	if len(fake.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(fake.calls))
+	}
+	if !strings.Contains(fake.calls[0], "attach-session") {
+		t.Fatalf("expected attach-session, got %q", fake.calls[0])
+	}
+}
+
+func TestAttachSessionInsideTmux(t *testing.T) {
+	t.Setenv("TMUX", "/tmp/tmux-1000/default,12345,0")
+	fake := newFakeExecutor()
+	err := attachSession(context.Background(), fake, "test-session")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(fake.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(fake.calls))
+	}
 	if !strings.Contains(fake.calls[0], "switch-client") {
 		t.Fatalf("expected switch-client, got %q", fake.calls[0])
 	}
 }
 
-func TestAttachSessionFallback(t *testing.T) {
+func TestCreatePane(t *testing.T) {
 	fake := newFakeExecutor()
-	fake.errors["switch-client"] = fmt.Errorf("exit status 1")
-	err := attachSession(context.Background(), fake, "test-session")
+	err := createPane(context.Background(), fake, "test-session", "/tmp/work", "vim")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if len(fake.calls) != 2 {
 		t.Fatalf("expected 2 calls, got %d", len(fake.calls))
 	}
-	if !strings.Contains(fake.calls[1], "attach-session") {
-		t.Fatalf("expected attach-session, got %q", fake.calls[1])
+	if !strings.Contains(fake.calls[0], "split-window") {
+		t.Fatalf("expected split-window, got %q", fake.calls[0])
 	}
-}
-
-func TestCreateWindow(t *testing.T) {
-	fake := newFakeExecutor()
-	err := createWindow(context.Background(), fake, "test-session", "editor", "vim")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !strings.Contains(fake.calls[0], "new-window") {
-		t.Fatalf("expected new-window, got %q", fake.calls[0])
+	if !strings.Contains(fake.calls[1], "send-keys") || !strings.Contains(fake.calls[1], "vim") {
+		t.Fatalf("expected send-keys with vim, got %q", fake.calls[1])
 	}
 }

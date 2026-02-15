@@ -36,6 +36,17 @@ func (f *fakeExecutor) Run(_ context.Context, name string, args ...string) (stri
 	return "", nil
 }
 
+func (f *fakeExecutor) RunAttached(_ context.Context, name string, args ...string) error {
+	call := name + " " + strings.Join(args, " ")
+	f.calls = append(f.calls, call)
+	for pattern, err := range f.errors {
+		if strings.Contains(call, pattern) {
+			return err
+		}
+	}
+	return nil
+}
+
 func TestBareClone(t *testing.T) {
 	fake := newFakeExecutor()
 	err := bareClone(context.Background(), fake, "git@github.com:org/repo.git", "/tmp/repo")

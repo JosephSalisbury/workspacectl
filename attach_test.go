@@ -36,11 +36,12 @@ func TestRunAttachCreatesSession(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Should create session, rename window, send-keys, create second window, then attach.
+	// Should create session, rename window, send-keys, create pane, then attach.
 	foundNewSession := false
 	foundRenameWindow := false
-	foundSendKeys := false
-	foundNewWindow := false
+	foundSendKeysClaude := false
+	foundSplitWindow := false
+	foundSendKeysDiff := false
 	foundAttach := false
 	for _, call := range fake.calls {
 		if strings.Contains(call, "new-session") {
@@ -50,10 +51,13 @@ func TestRunAttachCreatesSession(t *testing.T) {
 			foundRenameWindow = true
 		}
 		if strings.Contains(call, "send-keys") && strings.Contains(call, "claude") {
-			foundSendKeys = true
+			foundSendKeysClaude = true
 		}
-		if strings.Contains(call, "new-window") && strings.Contains(call, "diff") {
-			foundNewWindow = true
+		if strings.Contains(call, "split-window") {
+			foundSplitWindow = true
+		}
+		if strings.Contains(call, "send-keys") && strings.Contains(call, "diff") {
+			foundSendKeysDiff = true
 		}
 		if strings.Contains(call, "attach-session") || strings.Contains(call, "switch-client") {
 			foundAttach = true
@@ -66,11 +70,14 @@ func TestRunAttachCreatesSession(t *testing.T) {
 	if !foundRenameWindow {
 		t.Error("expected rename-window call")
 	}
-	if !foundSendKeys {
+	if !foundSendKeysClaude {
 		t.Error("expected send-keys call with claude command")
 	}
-	if !foundNewWindow {
-		t.Error("expected new-window call for diff")
+	if !foundSplitWindow {
+		t.Error("expected split-window call for diff pane")
+	}
+	if !foundSendKeysDiff {
+		t.Error("expected send-keys call with diff command")
 	}
 	if !foundAttach {
 		t.Error("expected attach/switch call")

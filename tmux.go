@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -37,22 +38,22 @@ func createSession(ctx context.Context, executor Executor, name, workDir string)
 }
 
 func attachSession(ctx context.Context, executor Executor, name string) error {
-	// If we're inside tmux, switch; otherwise attach.
-	_, err := executor.Run(ctx, "tmux", "switch-client", "-t", name)
-	if err != nil {
-		// Not inside tmux, try attach.
-		_, err = executor.Run(ctx, "tmux", "attach-session", "-t", name)
-		if err != nil {
-			return fmt.Errorf("attaching to tmux session %s: %w", name, err)
+	if os.Getenv("TMUX") != "" {
+		if _, err := executor.Run(ctx, "tmux", "switch-client", "-t", name); err != nil {
+			return fmt.Errorf("switching to tmux session %s: %w", name, err)
 		}
+		return nil
 	}
-	return nil
+	return executor.RunAttached(ctx, "tmux", "attach-session", "-t", name)
 }
 
-func createWindow(ctx context.Context, executor Executor, sessionName, windowName, command string) error {
-	_, err := executor.Run(ctx, "tmux", "new-window", "-t", sessionName, "-n", windowName, command)
+func createPane(ctx context.Context, executor Executor, sessionName, workDir, command string) error {
+	paneID, err := executor.Run(ctx, "tmux", "split-window", "-h", "-d", "-t", sessionName, "-c", workDir, "-P", "-F", "#{pane_id}")
 	if err != nil {
-		return fmt.Errorf("creating tmux window %s in %s: %w", windowName, sessionName, err)
+		return fmt.Errorf("creating tmux pane in %s: %w", sessionName, err)
+	}
+	if _, err := executor.Run(ctx, "tmux", "send-keys", "-t", strings.TrimSpace(paneID), command, "Enter"); err != nil {
+		return fmt.Errorf("sending command to pane in %s: %w", sessionName, err)
 	}
 	return nil
 }
