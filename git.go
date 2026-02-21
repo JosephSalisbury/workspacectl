@@ -51,3 +51,34 @@ func gitCreateBranch(ctx context.Context, executor Executor, bareCloneDir, branc
 	}
 	return nil
 }
+
+func hasUncommittedChanges(ctx context.Context, executor Executor, worktreeDir string) (bool, error) {
+	out, err := executor.Run(ctx, "git", "-C", worktreeDir, "status", "--porcelain")
+	if err != nil {
+		return false, fmt.Errorf("checking uncommitted changes: %w", err)
+	}
+	return strings.TrimSpace(out) != "", nil
+}
+
+func hasUnpushedCommits(ctx context.Context, executor Executor, bareCloneDir, branch, worktreeDir string) (bool, error) {
+	onRemote, err := branchExistsOnRemote(ctx, executor, bareCloneDir, branch)
+	if err != nil {
+		return false, err
+	}
+	if !onRemote {
+		return true, nil
+	}
+	out, err := executor.Run(ctx, "git", "-C", worktreeDir, "log", "origin/"+branch+"..HEAD", "--oneline")
+	if err != nil {
+		return false, fmt.Errorf("checking unpushed commits: %w", err)
+	}
+	return strings.TrimSpace(out) != "", nil
+}
+
+func removeWorktree(ctx context.Context, executor Executor, bareCloneDir, worktreePath string) error {
+	_, err := executor.Run(ctx, "git", "-C", bareCloneDir, "worktree", "remove", worktreePath)
+	if err != nil {
+		return fmt.Errorf("removing worktree %s: %w", worktreePath, err)
+	}
+	return nil
+}
