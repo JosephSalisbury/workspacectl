@@ -47,6 +47,21 @@ func attachSession(ctx context.Context, executor Executor, name string) error {
 	return executor.RunAttached(ctx, "tmux", "attach-session", "-t", name)
 }
 
+func killSession(ctx context.Context, executor Executor, name string) error {
+	exists, err := sessionExists(ctx, executor, name)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+	_, err = executor.Run(ctx, "tmux", "kill-session", "-t", name)
+	if err != nil {
+		return fmt.Errorf("killing tmux session %s: %w", name, err)
+	}
+	return nil
+}
+
 func createPane(ctx context.Context, executor Executor, sessionName, workDir, command string) error {
 	paneID, err := executor.Run(ctx, "tmux", "split-window", "-h", "-d", "-t", sessionName, "-c", workDir, "-P", "-F", "#{pane_id}")
 	if err != nil {
