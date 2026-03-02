@@ -85,8 +85,14 @@ func TestPopupContainsCreateWorktreePipeline(t *testing.T) {
 	if !strings.Contains(call, `read org`) {
 		t.Fatalf("expected read org in create worktree pipeline, got %q", call)
 	}
+	if !strings.Contains(call, `read branch`) {
+		t.Fatalf("expected read branch in create worktree pipeline, got %q", call)
+	}
 	if !strings.Contains(call, "create --type worktree") {
 		t.Fatalf("expected create --type worktree in pipeline, got %q", call)
+	}
+	if !strings.Contains(call, `--branch "$branch"`) {
+		t.Fatalf("expected --branch flag in create worktree pipeline, got %q", call)
 	}
 }
 

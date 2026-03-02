@@ -31,7 +31,7 @@ func runPopupWith(ctx context.Context, executor Executor, exe string) error {
 		return err
 	}
 
-	createWorktreePipeline := `printf "org: " && read org && printf "repo: " && read repo && name=$(` + exe + ` create --type worktree --org "$org" --repo "$repo") && ` + exe + ` attach "$name"`
+	createWorktreePipeline := `printf "org: " && read org && printf "repo: " && read repo && printf "branch: " && read branch && name=$(` + exe + ` create --type worktree --org "$org" --repo "$repo" --branch "$branch") && ` + exe + ` attach "$name"`
 	createTemporaryPipeline := `name=$(` + exe + ` create --type temporary) && ` + exe + ` attach "$name"`
 	deletePipeline := exe + ` list | fzf | xargs ` + exe + ` delete --force`
 
