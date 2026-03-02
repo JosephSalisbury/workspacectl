@@ -69,14 +69,14 @@ func TestDeleteWorktreeDirtyConfirmed(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	foundRemove := false
+	foundForceRemove := false
 	for _, call := range fake.calls {
-		if strings.Contains(call, "worktree remove") {
-			foundRemove = true
+		if strings.Contains(call, "worktree remove --force") {
+			foundForceRemove = true
 		}
 	}
-	if !foundRemove {
-		t.Error("expected worktree remove call after confirmation")
+	if !foundForceRemove {
+		t.Error("expected worktree remove --force call after confirmation")
 	}
 }
 
@@ -110,7 +110,7 @@ func TestDeleteWorktreeForce(t *testing.T) {
 	setupWorktreeWorkspace(t, base, "feature")
 
 	fake := newCleanFakeExecutor()
-	// Dirty: unpushed commits.
+	// Dirty: uncommitted changes.
 	fake.results["status --porcelain"] = "M  file.go"
 
 	err := runDeleteWith(context.Background(), fake, strings.NewReader(""), "org-repo-feature", true)
@@ -118,14 +118,14 @@ func TestDeleteWorktreeForce(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	foundRemove := false
+	foundForceRemove := false
 	for _, call := range fake.calls {
-		if strings.Contains(call, "worktree remove") {
-			foundRemove = true
+		if strings.Contains(call, "worktree remove --force") {
+			foundForceRemove = true
 		}
 	}
-	if !foundRemove {
-		t.Error("expected worktree remove call with --force")
+	if !foundForceRemove {
+		t.Error("expected worktree remove --force call")
 	}
 }
 

@@ -92,7 +92,7 @@ func runDeleteWith(ctx context.Context, executor Executor, stdin io.Reader, name
 			return err
 		}
 
-		if err := removeWorktree(ctx, executor, repoDir, ws.Path); err != nil {
+		if err := removeWorktree(ctx, executor, repoDir, ws.Path, uncommitted); err != nil {
 			return err
 		}
 
