@@ -68,6 +68,13 @@ func hasUnpushedCommits(ctx context.Context, executor Executor, bareCloneDir, br
 	if !onRemote {
 		return true, nil
 	}
+	// Verify the remote tracking ref is available locally before comparing.
+	_, err = executor.Run(ctx, "git", "-C", worktreeDir, "rev-parse", "--verify", "origin/"+branch)
+	if err != nil {
+		// Remote has the branch but we haven't fetched it locally,
+		// so we can't compare — treat as having unpushed commits.
+		return true, nil
+	}
 	out, err := executor.Run(ctx, "git", "-C", worktreeDir, "log", "origin/"+branch+"..HEAD", "--oneline")
 	if err != nil {
 		return false, fmt.Errorf("checking unpushed commits: %w", err)
