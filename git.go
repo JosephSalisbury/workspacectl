@@ -75,8 +75,13 @@ func hasUnpushedCommits(ctx context.Context, executor Executor, bareCloneDir, br
 	return strings.TrimSpace(out) != "", nil
 }
 
-func removeWorktree(ctx context.Context, executor Executor, bareCloneDir, worktreePath string) error {
-	_, err := executor.Run(ctx, "git", "-C", bareCloneDir, "worktree", "remove", worktreePath)
+func removeWorktree(ctx context.Context, executor Executor, bareCloneDir, worktreePath string, force bool) error {
+	args := []string{"-C", bareCloneDir, "worktree", "remove"}
+	if force {
+		args = append(args, "--force")
+	}
+	args = append(args, worktreePath)
+	_, err := executor.Run(ctx, "git", args...)
 	if err != nil {
 		return fmt.Errorf("removing worktree %s: %w", worktreePath, err)
 	}
